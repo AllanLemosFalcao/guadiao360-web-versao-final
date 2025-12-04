@@ -100,6 +100,116 @@ app.get('/api/ocorrencias/stats', (req, res) => {
 });
 
 // ===============================================
+// ROTAS AUXILIARES (PARA OS SELECTS)
+// ===============================================
+app.get('/api/perfis', (req, res) => {
+    dbConnection.query("SELECT * FROM perfis", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+app.get('/api/unidades', (req, res) => {
+    dbConnection.query("SELECT * FROM unidades", (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// ===============================================
+// ROTA DE USUÁRIOS (LISTAR COM FILTROS E PAGINAÇÃO)
+// ===============================================
+app.get('/api/usuarios', (req, res) => {
+    const { perfil, unidade, status, posto, page } = req.query;
+    
+    const limit = 10; // Máximo de 10 registros por página
+    const pageNum = parseInt(page) || 1;
+    const offset = (pageNum - 1) * limit;
+
+    let sqlQuery = `
+        SELECT 
+            u.id, u.nome_completo, u.matricula, u.posto_graduacao, u.status,
+            p.nome_perfil, un.nome_unidade
+        FROM usuarios u
+        LEFT JOIN perfis p ON u.perfil_id = p.id
+        LEFT JOIN unidades un ON u.unidade_id = un.id
+    `;
+    
+    const whereClauses = [];
+    const params = [];
+
+    if (perfil) { whereClauses.push("u.perfil_id = ?"); params.push(perfil); }
+    if (unidade) { whereClauses.push("u.unidade_id = ?"); params.push(unidade); }
+    if (status) { whereClauses.push("u.status = ?"); params.push(status); }
+    if (posto) { whereClauses.push("u.posto_graduacao = ?"); params.push(posto); }
+
+    if (whereClauses.length > 0) {
+        sqlQuery += " WHERE " + whereClauses.join(" AND ");
+    }
+
+    // Query de Contagem (para paginação)
+    const countQuery = `SELECT COUNT(*) as total FROM usuarios u ${whereClauses.length > 0 ? " WHERE " + whereClauses.join(" AND ") : ""}`;
+
+    dbConnection.query(countQuery, params, (err, countResult) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        const totalCount = countResult[0].total;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Query de Dados
+        sqlQuery += " ORDER BY u.nome_completo ASC LIMIT ? OFFSET ?";
+        const dataParams = [...params, limit, offset];
+
+        dbConnection.query(sqlQuery, dataParams, (err, dataResults) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            res.json({
+                data: dataResults,
+                pagination: { page: pageNum, totalPages, totalCount }
+            });
+        });
+    });
+});
+
+// ===============================================
+// ROTAS DE AÇÃO (CRIAR, EDITAR, EXCLUIR)
+// ===============================================
+
+// CRIAR
+// Necessário instalar body-parser: npm install body-parser
+// Ou usar: app.use(express.json()); no topo do arquivo
+app.post('/api/usuarios', (req, res) => {
+    const { nome, matricula, posto, status, perfil_id, unidade_id } = req.body;
+    const sql = "INSERT INTO usuarios (nome_completo, matricula, posto_graduacao, status, perfil_id, unidade_id) VALUES (?, ?, ?, ?, ?, ?)";
+    
+    dbConnection.query(sql, [nome, matricula, posto, status, perfil_id, unidade_id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Usuário criado com sucesso!", id: result.insertId });
+    });
+});
+
+// EXCLUIR
+app.delete('/api/usuarios/:id', (req, res) => {
+    const { id } = req.params;
+    dbConnection.query("DELETE FROM usuarios WHERE id = ?", [id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Usuário excluído com sucesso!" });
+    });
+});
+
+// EDITAR (Atualizar)
+app.put('/api/usuarios/:id', (req, res) => {
+    const { id } = req.params;
+    const { nome, matricula, posto, status, perfil_id, unidade_id } = req.body;
+    const sql = "UPDATE usuarios SET nome_completo=?, matricula=?, posto_graduacao=?, status=?, perfil_id=?, unidade_id=? WHERE id=?";
+    
+    dbConnection.query(sql, [nome, matricula, posto, status, perfil_id, unidade_id, id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Usuário atualizado com sucesso!" });
+    });
+});
+
+// ===============================================
 // ROTA DA TABELA DE OCORRÊNCIAS (A rota que sumiu)
 // ===============================================
 app.get('/api/ocorrencias', (req, res) => {

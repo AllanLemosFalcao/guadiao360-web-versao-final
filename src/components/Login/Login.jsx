@@ -1,33 +1,34 @@
 // src/components/Login/Login.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 import styles from './Login.module.css';
-
-// Importe o logo/brasão aqui.
-// Você precisará salvar a imagem do brasão (LOGIN (1).jpg - parte da direita)
-// em um local como 'src/assets/logo.png' ou usar uma URL.
-// Exemplo:
-// import logoGuadiao from '../../assets/logo-guardiao.png'; 
 
 function Login() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [lembrar, setLembrar] = useState(false);
+  
+  const navigate = useNavigate(); // Hook de navegação
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Lógica de autenticação aqui
-    console.log('Login Tentado:', { email, senha, lembrar });
+    
+    // AQUI VIRIA A LÓGICA DE AUTENTICAÇÃO COM O BACK-END (API)
+    // Por enquanto, vamos simular que deu certo e redirecionar:
+    console.log('Login efetuado:', { email, senha, lembrar });
+    
+    // Redireciona para a página inicial (Ocorrências)
+    navigate('/'); 
   };
 
-  // OBS: Como não tenho a imagem para importar diretamente, usarei um 'div'
-  // com um placeholder para o logotipo.
   const Logo = (
     <div className={styles.logoContainer}>
-      {/* Use uma tag <img> real com seu caminho de arquivo aqui */}
-      {/* <img src={logoGuadiao} alt="Brasão do Corpo de Bombeiros e Tocha" /> */}
-      <div className={styles.logoPlaceholder}>
-        {/* Este é um PLACEHOLDER! Adicione sua imagem real */}
-      </div>
+      {/* Imagem do logo (Brasão) */}
+      <img 
+        src="https://i.postimg.cc/28YgB6z9/Gemini-Generated-Image-tr1uhatr1uhatr1u-8.png" 
+        alt="Brasão Guardião 360"
+        style={{ width: '200px', height: 'auto', marginBottom: '10px' }} // Estilo inline para ajuste rápido
+      />
       <h1 className={styles.tituloGuardiao}>GUARDIÃO 360°</h1>
     </div>
   );
@@ -56,7 +57,6 @@ function Login() {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             className={styles.inputField}
-            // OBS: O input de senha está com bolinhas na imagem, o que é o padrão 'type="password"'
           />
 
           <div className={styles.lembrarMe}>
@@ -79,7 +79,6 @@ function Login() {
         </form>
       </div>
 
-      {/* Lado direito da imagem */}
       {Logo}
     </div>
   );

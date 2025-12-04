@@ -70,10 +70,10 @@ const Relatorios = () => {
           actions={<></>}
         />
         
-        {/* Botão "Gerar Relatórios +" (conectado ao handler) */}
+        {/* Botão "Gerar Relatórios" (conectado ao handler) */}
         <section className={styles.buttonContainer}>
           <button className={`btn ${styles.btnAddUser}`} onClick={handleGerarRelatorio}>
-            <i className="fa-solid fa-plus"></i> Gerar Relatórios +
+            <i className="fa-solid"></i> Gerar Relatórios
           </button>
         </section>
 
@@ -235,7 +235,7 @@ const Relatorios = () => {
                 ) : (
                     <tr>
                         <td colSpan="4" style={{textAlign: 'center'}}>
-                            Clique em "Gerar Relatórios +" para ver o resumo.
+                            Clique em "Gerar Relatórios" para ver o resumo.
                         </td>
                     </tr>
                 )}
